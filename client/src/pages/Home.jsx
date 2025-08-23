@@ -19,14 +19,17 @@ const Home = () => {
   const fetchGroupedLinks = async () => {
     try {
       if (!user) {
+        console.log('No user found, clearing links') // Debug log
         setGroupedLinks({})
         setLatestLinks([])
         setIsLoading(false)
         return
       }
 
+      console.log('Fetching links for user:', user.id) // Debug log
       setIsLoading(true);
       const response = await api.get("/links/grouped");
+      console.log('Received grouped links:', Object.keys(response.data).length, 'categories') // Debug log
       setGroupedLinks(response.data);
 
       // Get latest 5 links for hero slider

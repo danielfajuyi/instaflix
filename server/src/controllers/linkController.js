@@ -2,10 +2,10 @@ import { validationResult } from 'express-validator'
 import Link from '../models/Link.js'
 import axios from 'axios'
 
-// Get all links with optional filtering, searching, and sorting
+// Get all links with optional filtering, searching, and sorting - USER SPECIFIC
 export const getLinks = async (req, res) => {
   try {
-    if (!req.user) {
+    if (!req.user || !req.user.id) {
       return res.status(401).json({
         success: false,
         message: 'Authentication required'
@@ -14,7 +14,7 @@ export const getLinks = async (req, res) => {
 
     const { tag, q, sort = 'newest' } = req.query
     
-    // Build query object
+    // Build query object - ALWAYS filter by userId
     let query = { userId: req.user.id }
     
     if (tag) {
@@ -36,9 +36,13 @@ export const getLinks = async (req, res) => {
         sortObj.createdAt = -1
     }
     
+    console.log('Fetching links for user:', req.user.id, 'with query:', query) // Debug log
+    
     const links = await Link.find(query)
       .sort(sortObj)
       .limit(100) // Reasonable limit
+    
+    console.log('Found', links.length, 'links for user:', req.user.id) // Debug log
     
     res.json(links)
   } catch (error) {
@@ -50,17 +54,21 @@ export const getLinks = async (req, res) => {
   }
 }
 
-// Get links grouped by tag (for Netflix-style rows)
+// Get links grouped by tag (for Netflix-style rows) - USER SPECIFIC
 export const getGroupedLinks = async (req, res) => {
   try {
-    if (!req.user) {
+    if (!req.user || !req.user.id) {
       return res.status(401).json({
         success: false,
         message: 'Authentication required'
       })
     }
 
+    console.log('Fetching grouped links for user:', req.user.id) // Debug log
+
     const links = await Link.find({ userId: req.user.id }).sort({ createdAt: -1 })
+    
+    console.log('Found', links.length, 'total links for user:', req.user.id) // Debug log
     
     // Group links by tag
     const groupedLinks = links.reduce((groups, link) => {
@@ -72,6 +80,8 @@ export const getGroupedLinks = async (req, res) => {
       return groups
     }, {})
     
+    console.log('Grouped into', Object.keys(groupedLinks).length, 'categories') // Debug log
+    
     res.json(groupedLinks)
   } catch (error) {
     console.error('Error fetching grouped links:', error)
@@ -82,10 +92,10 @@ export const getGroupedLinks = async (req, res) => {
   }
 }
 
-// Get single link by ID
+// Get single link by ID - USER SPECIFIC
 export const getLinkById = async (req, res) => {
   try {
-    if (!req.user) {
+    if (!req.user || !req.user.id) {
       return res.status(401).json({
         success: false,
         message: 'Authentication required'
@@ -94,7 +104,7 @@ export const getLinkById = async (req, res) => {
 
     const link = await Link.findOne({ 
       _id: req.params.id, 
-      userId: req.user.id 
+      userId: req.user.id  // CRITICAL: Only find links belonging to this user
     })
     
     if (!link) {
@@ -114,10 +124,10 @@ export const getLinkById = async (req, res) => {
   }
 }
 
-// Create new link
+// Create new link - USER SPECIFIC
 export const createLink = async (req, res) => {
   try {
-    if (!req.user) {
+    if (!req.user || !req.user.id) {
       return res.status(401).json({
         success: false,
         message: 'Authentication required'
@@ -136,10 +146,10 @@ export const createLink = async (req, res) => {
     
     const { url, caption, tag } = req.body
     
-    // Check if URL already exists
+    // Check if URL already exists FOR THIS USER
     const existingLink = await Link.findOne({ 
       url: url.trim(), 
-      userId: req.user.id 
+      userId: req.user.id  // CRITICAL: Check only within user's links
     })
     if (existingLink) {
       return res.status(409).json({
@@ -148,9 +158,11 @@ export const createLink = async (req, res) => {
       })
     }
     
-    // Create new link
+    console.log('Creating link for user:', req.user.id) // Debug log
+    
+    // Create new link with user ID
     const link = new Link({
-      userId: req.user.id,
+      userId: req.user.id,  // CRITICAL: Associate with authenticated user
       url: url.trim(),
       caption: caption?.trim() || '',
       tag: tag.trim()
@@ -174,6 +186,8 @@ export const createLink = async (req, res) => {
     
     await link.save()
     
+    console.log('Created link:', link._id, 'for user:', req.user.id) // Debug log
+    
     res.status(201).json(link)
   } catch (error) {
     console.error('Error creating link:', error)
@@ -184,10 +198,10 @@ export const createLink = async (req, res) => {
   }
 }
 
-// Update link
+// Update link - USER SPECIFIC
 export const updateLink = async (req, res) => {
   try {
-    if (!req.user) {
+    if (!req.user || !req.user.id) {
       return res.status(401).json({
         success: false,
         message: 'Authentication required'
@@ -205,8 +219,11 @@ export const updateLink = async (req, res) => {
     
     const { caption, tag } = req.body
     
-    const link = await Link.findByIdAndUpdate(
-      { _id: req.params.id, userId: req.user.id },
+    const link = await Link.findOneAndUpdate(
+      { 
+        _id: req.params.id, 
+        userId: req.user.id  // CRITICAL: Only update user's own links
+      },
       {
         caption: caption?.trim() || '',
         tag: tag.trim()
@@ -221,6 +238,8 @@ export const updateLink = async (req, res) => {
       })
     }
     
+    console.log('Updated link:', link._id, 'for user:', req.user.id) // Debug log
+    
     res.json(link)
   } catch (error) {
     console.error('Error updating link:', error)
@@ -231,10 +250,10 @@ export const updateLink = async (req, res) => {
   }
 }
 
-// Delete link
+// Delete link - USER SPECIFIC
 export const deleteLink = async (req, res) => {
   try {
-    if (!req.user) {
+    if (!req.user || !req.user.id) {
       return res.status(401).json({
         success: false,
         message: 'Authentication required'
@@ -243,7 +262,7 @@ export const deleteLink = async (req, res) => {
 
     const link = await Link.findOneAndDelete({ 
       _id: req.params.id, 
-      userId: req.user.id 
+      userId: req.user.id  // CRITICAL: Only delete user's own links
     })
     
     if (!link) {
@@ -252,6 +271,8 @@ export const deleteLink = async (req, res) => {
         message: 'Link not found'
       })
     }
+    
+    console.log('Deleted link:', req.params.id, 'for user:', req.user.id) // Debug log
     
     res.json({
       success: true,
@@ -262,6 +283,27 @@ export const deleteLink = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to delete link'
+    })
+  }
+}
+
+// Get unique tags - USER SPECIFIC
+export const getTags = async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      })
+    }
+
+    const tags = await Link.distinct('tag', { userId: req.user.id })
+    res.json(tags.sort())
+  } catch (error) {
+    console.error('Error fetching tags:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch tags'
     })
   }
 }
@@ -294,26 +336,5 @@ async function fetchInstagramEmbed(url) {
       console.warn('Both oEmbed endpoints failed:', error.message, fallbackError.message)
       return null
     }
-  }
-}
-
-// Get unique tags
-export const getTags = async (req, res) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required'
-      })
-    }
-
-    const tags = await Link.distinct('tag', { userId: req.user.id })
-    res.json(tags.sort())
-  } catch (error) {
-    console.error('Error fetching tags:', error)
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch tags'
-    })
   }
 }

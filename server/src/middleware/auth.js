@@ -1,8 +1,12 @@
-import jwt from 'jsonwebtoken'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('Missing Supabase environment variables')
+  process.exit(1)
+}
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
@@ -23,19 +27,21 @@ export const authenticateUser = async (req, res, next) => {
     const { data: { user }, error } = await supabase.auth.getUser(token)
 
     if (error || !user) {
+      console.error('Auth error:', error)
       return res.status(401).json({
         success: false,
         message: 'Invalid or expired token'
       })
     }
 
-    // Add user info to request object
+    // Add user info to request object - CRITICAL: Use user.id for database queries
     req.user = {
-      id: user.id,
+      id: user.id,  // This is the Supabase user ID that should be used in database
       email: user.email,
-      ...user
+      metadata: user.user_metadata || {}
     }
 
+    console.log('Authenticated user:', req.user.id) // Debug log
     next()
   } catch (error) {
     console.error('Auth middleware error:', error)
@@ -60,7 +66,7 @@ export const optionalAuth = async (req, res, next) => {
         req.user = {
           id: user.id,
           email: user.email,
-          ...user
+          metadata: user.user_metadata || {}
         }
       }
     }
