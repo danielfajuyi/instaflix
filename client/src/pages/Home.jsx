@@ -19,14 +19,17 @@ const Home = () => {
   const fetchGroupedLinks = async () => {
     try {
       if (!user) {
+        console.log('No user found, clearing links') // Debug log
         setGroupedLinks({})
         setLatestLinks([])
         setIsLoading(false)
         return
       }
 
+      console.log('Fetching links for user:', user.id) // Debug log
       setIsLoading(true);
       const response = await api.get("/links/grouped");
+      console.log('Received grouped links:', Object.keys(response.data).length, 'categories') // Debug log
       setGroupedLinks(response.data);
 
       // Get latest 5 links for hero slider
@@ -37,7 +40,13 @@ const Home = () => {
       setLatestLinks(sortedLinks.slice(0, 5));
     } catch (error) {
       console.error("Error fetching grouped links:", error);
-      toast.error("Failed to load links");
+      if (error.response?.status === 401) {
+        console.log('User not authenticated, clearing links')
+        setGroupedLinks({})
+        setLatestLinks([])
+      } else {
+        toast.error("Failed to load links");
+      }
     } finally {
       setIsLoading(false);
     }

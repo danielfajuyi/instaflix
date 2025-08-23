@@ -1,7 +1,6 @@
 import axios from "axios";
 import { supabase } from "./auth";
 
-// const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 export const api = axios.create({
   baseURL,
@@ -13,15 +12,17 @@ export const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   async (config) => {
-    // You can add auth headers here if needed
     try {
       const { data: { session } } = await supabase.auth.getSession()
       
       if (session?.access_token) {
         config.headers.Authorization = `Bearer ${session.access_token}`
+        console.log('Adding auth token to request:', config.url) // Debug log
+      } else {
+        console.warn('No session found for request:', config.url) // Debug log
       }
     } catch (error) {
-      console.error('Error getting session:', error)
+      console.error('Error getting session for API request:', error)
     }
     
     return config;
@@ -39,9 +40,8 @@ api.interceptors.response.use(
   async (error) => {
     // Handle common errors
     if (error.response?.status === 401) {
-      // Token expired or invalid, redirect to login
       console.error("Authentication failed:", error.response.data)
-      // You could dispatch a logout action here or redirect to login
+      // Token expired or invalid - could redirect to login here
     } else if (error.response?.status === 404) {
       console.error("Resource not found:", error.response.data);
     } else if (error.response?.status >= 500) {

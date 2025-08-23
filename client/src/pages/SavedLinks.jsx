@@ -35,7 +35,12 @@ const SavedLinks = () => {
       setLinks(response.data)
     } catch (error) {
       console.error('Error fetching links:', error)
-      toast.error('Failed to load links')
+      if (error.response?.status === 401) {
+        console.log('User not authenticated, clearing links')
+        setLinks([])
+      } else {
+        toast.error('Failed to load links')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -48,8 +53,8 @@ const SavedLinks = () => {
         return
       }
 
-      const response = await api.get('/links/grouped')
-      setAvailableTags(Object.keys(response.data))
+      const response = await api.get('/links/tags')
+      setAvailableTags(response.data)
     } catch (error) {
       console.error('Error fetching tags:', error)
     }

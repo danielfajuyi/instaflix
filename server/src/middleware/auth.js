@@ -35,15 +35,16 @@ export const authenticateUser = async (req, res, next) => {
     } = await supabase.auth.getUser(token);
 
     if (error || !user) {
+      console.error("Auth error:", error);
       return res.status(401).json({
         success: false,
         message: "Invalid or expired token",
       });
     }
 
-    // Add user info to request object
+    // Add user info to request object - CRITICAL: Use user.id for database queries
     req.user = {
-      id: user.id,
+      id: user.id, // This is the Supabase user ID that should be used in database
       email: user.email,
       ...user,
     };
