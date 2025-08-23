@@ -45,6 +45,7 @@ const AddLink = () => {
         tag: data.tag.trim()
       }
 
+      console.log('Submitting link for user:', user.id) // Debug log
       await api.post('/links', linkData)
       
       toast.success('Link added successfully!', {

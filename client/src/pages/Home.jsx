@@ -40,7 +40,13 @@ const Home = () => {
       setLatestLinks(sortedLinks.slice(0, 5));
     } catch (error) {
       console.error("Error fetching grouped links:", error);
-      toast.error("Failed to load links");
+      if (error.response?.status === 401) {
+        console.log('User not authenticated, clearing links')
+        setGroupedLinks({})
+        setLatestLinks([])
+      } else {
+        toast.error("Failed to load links");
+      }
     } finally {
       setIsLoading(false);
     }
