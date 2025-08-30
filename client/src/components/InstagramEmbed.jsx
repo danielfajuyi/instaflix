@@ -88,7 +88,7 @@ const InstagramEmbed = ({ url, className = "" }) => {
       />
 
       {/* Scoped CSS fix for embeds */}
-      <style jsx>{`
+      <style>{`
         .instagram-embed-container {
           max-width: 100% !important;
           overflow: hidden;
