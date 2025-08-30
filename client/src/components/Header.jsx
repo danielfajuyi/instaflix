@@ -49,7 +49,7 @@ const Header = () => {
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
               <Instagram className="w-8 h-8 text-netflix-red" />
-              <span className="text-2xl font-bold text-white">InstaCRM</span>
+              <span className="text-2xl font-bold text-white">Instaflix</span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -79,7 +79,11 @@ const Header = () => {
                     className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-netflix-lightGray hover:text-white hover:bg-netflix-gray"
                   >
                     <User className="w-4 h-4" />
-                    <span>{user.user_metadata?.name || user.email?.split("@")[0] || "User"}</span>
+                    <span>
+                      {user.user_metadata?.name ||
+                        user.email?.split("@")[0] ||
+                        "User"}
+                    </span>
                   </button>
 
                   {showUserMenu && (
@@ -91,9 +95,17 @@ const Header = () => {
                       <div className="py-1">
                         <div className="px-4 py-2 text-sm text-netflix-lightGray border-b border-gray-600">
                           {user.user_metadata?.name && (
-                            <div className="font-medium">{user.user_metadata.name}</div>
+                            <div className="font-medium">
+                              {user.user_metadata.name}
+                            </div>
                           )}
-                          <div className={user.user_metadata?.name ? "text-xs" : ""}>{user.email}</div>
+                          <div
+                            className={
+                              user.user_metadata?.name ? "text-xs" : ""
+                            }
+                          >
+                            {user.email}
+                          </div>
                         </div>
                         <button
                           onClick={handleSignOut}
@@ -159,9 +171,15 @@ const Header = () => {
                   <div className="px-4">
                     <div className="text-netflix-lightGray text-sm mb-2">
                       {user.user_metadata?.name && (
-                        <div className="font-medium">{user.user_metadata.name}</div>
+                        <div className="font-medium">
+                          {user.user_metadata.name}
+                        </div>
                       )}
-                      <div className={user.user_metadata?.name ? "text-xs" : ""}>{user.email}</div>
+                      <div
+                        className={user.user_metadata?.name ? "text-xs" : ""}
+                      >
+                        {user.email}
+                      </div>
                     </div>
                     <button
                       onClick={handleSignOut}
