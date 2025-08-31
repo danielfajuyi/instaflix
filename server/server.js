@@ -37,7 +37,9 @@ app.set("trust proxy", 1); // 1 = trust first proxy
 // ✅ CORS configuration (only allow your frontend localhost for now)
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:5173"],
+    origin: ["http://localhost:3000", "https://instaflix.vercel.app"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Authorization", "Content-Type"],
     credentials: true,
   })
 );
