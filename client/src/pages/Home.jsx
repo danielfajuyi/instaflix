@@ -8,6 +8,12 @@ import HeroSlider from "../components/HeroSlider";
 import LinkModal from "../components/LinkModal";
 import { api } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
+import BlurText from "../components/BlurText";
+import ShinyText from "../components/ShinyText";
+
+const handleAnimationComplete = () => {
+  console.log("Animation completed!");
+};
 
 const Home = () => {
   const [groupedLinks, setGroupedLinks] = useState({});
@@ -19,17 +25,21 @@ const Home = () => {
   const fetchGroupedLinks = async () => {
     try {
       if (!user) {
-        console.log('No user found, clearing links') // Debug log
-        setGroupedLinks({})
-        setLatestLinks([])
-        setIsLoading(false)
-        return
+        console.log("No user found, clearing links"); // Debug log
+        setGroupedLinks({});
+        setLatestLinks([]);
+        setIsLoading(false);
+        return;
       }
 
-      console.log('Fetching links for user:', user.id) // Debug log
+      console.log("Fetching links for user:", user.id); // Debug log
       setIsLoading(true);
       const response = await api.get("/links/grouped");
-      console.log('Received grouped links:', Object.keys(response.data).length, 'categories') // Debug log
+      console.log(
+        "Received grouped links:",
+        Object.keys(response.data).length,
+        "categories"
+      ); // Debug log
       setGroupedLinks(response.data);
 
       // Get latest 5 links for hero slider
@@ -41,9 +51,9 @@ const Home = () => {
     } catch (error) {
       console.error("Error fetching grouped links:", error);
       if (error.response?.status === 401) {
-        console.log('User not authenticated, clearing links')
-        setGroupedLinks({})
-        setLatestLinks([])
+        console.log("User not authenticated, clearing links");
+        setGroupedLinks({});
+        setLatestLinks([]);
       } else {
         toast.error("Failed to load links");
       }
@@ -109,13 +119,24 @@ const Home = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="text-center max-w-md">
+        <div className="text-center items-center flex flex-col max-w-md">
           <Instagram className="w-16 h-16 text-netflix-red mx-auto mb-6" />
-          <h1 className="text-3xl font-bold mb-4">Your Instagram Collection</h1>
-          <p className="text-netflix-lightGray mb-8">
-            Start building your personalized Netflix-style collection of
-            Instagram posts and reels.
-          </p>
+          <BlurText
+            text="Your Instagram Collection"
+            delay={150}
+            animateBy="words"
+            direction="top"
+            onAnimationComplete={handleAnimationComplete}
+            className="text-3xl font-bold mb-4"
+          />
+
+          <ShinyText
+            text="Start building your personalized Netflix-style collection of
+            Instagram posts and reels."
+            disabled={false}
+            speed={3}
+            className="custom-class mb-8 "
+          />
           <Link
             to="/add"
             className="netflix-button inline-flex items-center space-x-2"

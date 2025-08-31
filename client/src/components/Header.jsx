@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Instagram,
@@ -16,10 +16,19 @@ import { toast } from "react-hot-toast";
 
 const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { user, signOut } = useAuth();
+
+  // 🔑 Auto-open modal if redirected from protected route
+  useEffect(() => {
+    if (location.state?.fromProtected) {
+      setShowAuthModal(true);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
 
   const navItems = [
     { path: "/", label: "Home", icon: Instagram },
@@ -36,6 +45,17 @@ const Header = () => {
       toast.error("Failed to sign out");
     }
   };
+
+  // 🔒 Intercept clicks on protected nav
+  const handleProtectedNav = (e, path) => {
+    if (!user && (path === "/add" || path === "/saved")) {
+      e.preventDefault();
+      setShowAuthModal(true);
+    } else {
+      setIsMenuOpen(false);
+    }
+  };
+
   return (
     <>
       <motion.header
@@ -59,6 +79,7 @@ const Header = () => {
                   <Link
                     key={path}
                     to={path}
+                    onClick={(e) => handleProtectedNav(e, path)}
                     className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
                       location.pathname === path
                         ? "text-netflix-red bg-netflix-gray"
@@ -153,7 +174,7 @@ const Header = () => {
                 <Link
                   key={path}
                   to={path}
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={(e) => handleProtectedNav(e, path)}
                   className={`flex items-center space-x-3 px-4 py-3 rounded-md text-base font-medium transition-colors duration-200 ${
                     location.pathname === path
                       ? "text-netflix-red bg-netflix-gray"
