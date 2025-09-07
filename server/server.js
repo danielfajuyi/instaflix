@@ -3,8 +3,6 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
-import rateLimit from "express-rate-limit";
-
 import mongoose from "mongoose";
 
 // Import routes
@@ -34,30 +32,13 @@ app.use(
 // Trust Vercel's proxy
 app.set("trust proxy", 1); // 1 = trust first proxy
 
-// ✅ CORS configuration (only allow your frontend localhost for now)
+// ✅ CORS configuration (only allow your frontend localhost + vercel)
 app.use(
   cors({
     origin: ["http://localhost:3000", "https://instaflix.vercel.app"],
-
     credentials: true,
   })
 );
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
-  message: "Too many requests from this IP, please try again later.",
-});
-app.use("/api/", limiter);
-
-// Stricter rate limiting for POST requests
-const postLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  skip: (req) => req.method !== "POST",
-});
-app.use("/api/links", postLimiter);
 
 // Body parsing middleware
 app.use(compression());
