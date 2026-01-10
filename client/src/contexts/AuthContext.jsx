@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get initial user
+    // Get current user
     getCurrentUser().then((user) => {
       setUser(user)
       setLoading(false)

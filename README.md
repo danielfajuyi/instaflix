@@ -2,7 +2,7 @@
 
 A full-stack MERN application that provides a Netflix-style interface for managing your Instagram links (posts & reels). Save, organize, and browse your favorite Instagram content with smooth animations and a beautiful UI.
 
-## 🚀 Features
+## Features
 
 - **Netflix-Style Interface**: Beautiful rows grouped by categories with smooth scroll animations
 - **Instagram Embed Integration**: Official Instagram embed support with lazy loading
@@ -12,7 +12,7 @@ A full-stack MERN application that provides a Netflix-style interface for managi
 - **Real-time Updates**: Optimistic UI with toast notifications
 - **Firebase Integration**: Ready for user uploads and authentication
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 
@@ -39,10 +39,11 @@ A full-stack MERN application that provides a Netflix-style interface for managi
 - **Instagram oEmbed API** for embed data
 - **Concurrently** for development workflow
 
-## 📦 Installation
+## Installation
 
 ### Prerequisites
 
-- Node.js (v18+ recommended)
-- MongoDB (local or MongoDB Atlas)
-- npm or yarn
+- ReactJs 
+- Node.js (v18)
+- MongoDB (MongoDB Atlas)
+
