@@ -36,7 +36,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'signin' }) => {
         onClose()
       }
     } catch (error) {
-      toast.error(error.message || 'Authentication failed')
+      toast.error(error.response?.data?.message || error.message || 'Authentication failed')
     } finally {
       setIsLoading(false)
     }
@@ -47,7 +47,8 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'signin' }) => {
       setIsLoading(true)
       await signInWithGoogle()
     } catch (error) {
-      toast.error(error.message || 'Google sign-in failed')
+      console.error(error); // Log full error
+      toast.error(error.response?.data?.message || error.message || 'Google sign-in failed')
       setIsLoading(false)
     }
   }

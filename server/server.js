@@ -7,6 +7,8 @@ import mongoose from "mongoose";
 
 // Import routes
 import linkRoutes from "./src/routes/links.js";
+import authRoutes from "./src/routes/auth.js";
+import passport from "./src/config/passport.js";
 import { errorHandler } from "./src/middleware/errorHandler.js";
 
 // Load environment variables
@@ -35,7 +37,7 @@ app.set("trust proxy", 1); // 1 = trust first proxy
 // ✅ CORS configuration (only allow your frontend localhost + vercel)
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://instaflix.vercel.app"],
+    origin: ["http://localhost:5173", "http://localhost:3000", "https://instaflix.vercel.app"],
     credentials: true,
   })
 );
@@ -44,6 +46,9 @@ app.use(
 app.use(compression());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// Initialize Passport
+app.use(passport.initialize());
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
@@ -55,6 +60,7 @@ app.get("/api/health", (req, res) => {
 });
 
 // API routes
+app.use("/api/auth", authRoutes);
 app.use("/api/links", linkRoutes);
 
 // 404 handler

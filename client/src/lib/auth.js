@@ -1,53 +1,42 @@
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+import { api } from './api';
 
 // Auth functions
 export const signUp = async (email, password) => {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-  })
-  
-  if (error) throw error
-  return data
+  const { data } = await api.post('/auth/register', { email, password });
+  if (data.token) {
+    localStorage.setItem('token', data.token);
+  }
+  return data;
 }
 
 export const signIn = async (email, password) => {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
-  
-  if (error) throw error
-  return data
+  const { data } = await api.post('/auth/login', { email, password });
+  if (data.token) {
+    localStorage.setItem('token', data.token);
+  }
+  return data;
 }
 
-export const signInWithGoogle = async () => {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `${window.location.origin}/auth/callback`
-    }
-  })
-  
-  if (error) throw error
-  return data
+export const signInWithGoogle = () => {
+    // Redirect to backend Google Auth URL
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
 }
 
 export const signOut = async () => {
-  const { error } = await supabase.auth.signOut()
-  if (error) throw error
+  localStorage.removeItem('token');
+  // Optional: Call backend logout if you implement session invalidation
 }
 
 export const getCurrentUser = async () => {
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
-}
-
-export const onAuthStateChange = (callback) => {
-  return supabase.auth.onAuthStateChange(callback)
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    
+    const { data } = await api.get('/auth/me');
+    return data;
+  } catch (error) {
+    console.error("Error fetching user", error);
+    localStorage.removeItem('token'); // Clear invalid token
+    return null;
+  }
 }

@@ -1,19 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-console.log("SUPABASE_URL:", process.env.SUPABASE_URL);
-console.log(
-  "SERVICE_ROLE_KEY length:",
-  process.env.SUPABASE_SERVICE_ROLE_KEY?.length
-);
 import jwt from "jsonwebtoken";
-
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export const authenticateUser = async (req, res, next) => {
   try {
@@ -28,28 +16,21 @@ export const authenticateUser = async (req, res, next) => {
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
-    // Verify the JWT token with Supabase
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser(token);
-
-    if (error || !user) {
-      console.error("Auth error:", error);
+    // Verify token
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      
+      // Add user info to request
+      req.user = { id: decoded.id };
+      next();
+    } catch (err) {
+      // console.error("JWT verification failed:", err.message);
       return res.status(401).json({
         success: false,
         message: "Invalid or expired token",
       });
     }
 
-    // Add user info to request object - CRITICAL: Use user.id for database queries
-    req.user = {
-      id: user.id, // This is the Supabase user ID that should be used in database
-      email: user.email,
-      ...user,
-    };
-
-    next();
   } catch (error) {
     console.error("Auth middleware error:", error);
     return res.status(401).json({
@@ -67,17 +48,12 @@ export const optionalAuth = async (req, res, next) => {
     if (authHeader && authHeader.startsWith("Bearer ")) {
       const token = authHeader.substring(7);
 
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser(token);
-
-      if (!error && user) {
-        req.user = {
-          id: user.id,
-          email: user.email,
-          ...user,
-        };
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = { id: decoded.id };
+      } catch (err) {
+        // Invalid token, but since auth is optional, we just ignore it
+        // console.log("Optional auth token invalid:", err.message);
       }
     }
 

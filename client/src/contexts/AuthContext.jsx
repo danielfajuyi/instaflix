@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { supabase, getCurrentUser, onAuthStateChange } from '../lib/auth'
+import { getCurrentUser } from '../lib/auth'
 
 const AuthContext = createContext({})
 
@@ -16,19 +16,37 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get current user
-    getCurrentUser().then((user) => {
-      setUser(user)
-      setLoading(false)
-    })
+    const initAuth = async () => {
+      // Check for token in URL (Google OAuth callback)
+      const params = new URLSearchParams(window.location.search);
+      const tokenFromUrl = params.get('token');
 
-    // Listen for auth changes
-    const { data: { subscription } } = onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+      if (tokenFromUrl) {
+        localStorage.setItem('token', tokenFromUrl);
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
 
-    return () => subscription.unsubscribe()
+      // Check for existing token and load user
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const user = await getCurrentUser();
+          if (user) {
+            setUser(user);
+          } else {
+            // Token invalid
+            localStorage.removeItem('token');
+          }
+        } catch (error) {
+          console.error("Failed to load user", error);
+        }
+      }
+      
+      setLoading(false);
+    };
+
+    initAuth();
   }, [])
 
   const value = {
